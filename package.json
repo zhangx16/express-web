@@ -1,0 +1,31 @@
+{
+  "name": "express-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "packages/server",
+    "packages/web"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "npm run build -w @ea/shared && npm run build -w @ea/server && npm run build -w @ea/web",
+    "dev:server": "npm run dev -w @ea/server",
+    "dev:web": "npm run dev -w @ea/web",
+    "test": "npm run build -w @ea/shared && npm run test -w @ea/server",
+    "typecheck": "npm run build -w @ea/shared && npm run typecheck -w @ea/shared && npm run typecheck -w @ea/server && npm run typecheck -w @ea/web",
+    "migrate": "npm run migrate -w @ea/server",
+    "create-user": "npm run create-user -w @ea/server",
+    "start": "node packages/server/dist/index.js",
+    "package:release": "bash scripts/package-release.sh"
+  },
+  "description": "Self-hosted parcel tracker for JD, Taobao, Pinduoduo and manual waybills",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhangx16/express-web.git"
+  }
+}

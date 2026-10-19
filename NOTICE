@@ -1,0 +1,9 @@
+Express Web is a TypeScript self-hosted web adaptation of ExpressAssistant.
+Upstream project: https://github.com/Halo0sama/ExpressAssistant
+Reference revision: 5adcfa780017ab0fb9888e5aaeef7b6a8d311209
+Original author: Halo0sama
+Upstream license: MIT; see LICENSE for the retained copyright and terms.
+
+This edition provides a browser UI and Node.js server, manual waybill tracking
+through Kuaidi100, and Telegram pickup notifications. It excludes Xiaomi support
+and the AI chat / AI report configuration modules.

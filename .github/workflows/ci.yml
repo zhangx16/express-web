@@ -1,0 +1,67 @@
+name: CI
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  release:
+    needs: check
+    if: github.event_name != 'pull_request' && github.repository == 'zhangx16/express-web'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Publish a new package version
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_version="$(node -p 'require("./package.json").version')"
+          release_tag="v$release_version"
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            echo "Release $release_tag already exists; skipping."
+            exit 0
+          fi
+          npm ci
+          npm run package:release
+          git archive --format=tar.gz --prefix="express-web-$release_version-source/" -o "artifacts/express-web-$release_version-source.tar.gz" HEAD
+          (
+            cd artifacts
+            sha256sum "express-web-$release_version-source.tar.gz" "express-web-$release_version-runtime.tar.gz" > SHA256SUMS
+          )
+          release_notes="docs/RELEASE-$release_tag.md"
+          if [[ ! -f "$release_notes" ]]; then release_notes=CHANGELOG.md; fi
+          gh release create "$release_tag" artifacts/*.tar.gz artifacts/SHA256SUMS \
+            --target "$GITHUB_SHA" --title "Express Web $release_tag" --notes-file "$release_notes"

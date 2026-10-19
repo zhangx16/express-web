@@ -59,6 +59,10 @@ npm start
 
 预构建运行包包含服务端和前端构建产物，不含 `node_modules`、浏览器、用户数据或密钥。解压后运行 `npm ci --omit=dev`，再按部署文档初始化环境、主密钥和管理员，并将 `packages/web/dist/` 复制到 `DATA_DIR/web/`。运行包不需要再次编译。
 
+## 自动检查与发布
+
+推送和Pull Request会运行类型检查、测试和构建。通过检查后，主分支推送或手动工作流会为尚未发布的package.json版本生成GitHub Release；已有版本不会覆盖。发布新版本时先更新版本号和更新记录。
+
 ## 开发与验证
 
 ```bash

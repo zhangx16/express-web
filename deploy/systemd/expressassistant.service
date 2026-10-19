@@ -1,0 +1,51 @@
+[Unit]
+Description=ExpressAssistant (self-hosted express aggregator)
+Documentation=file:///opt/expressassistant/docs/OPERATIONS.md
+After=network-online.target expressassistant-xvfb.service
+Wants=network-online.target expressassistant-xvfb.service
+
+[Service]
+Type=simple
+User=expressassistant
+Group=expressassistant
+WorkingDirectory=/opt/expressassistant
+# 注意：EnvironmentFile= 的变量优先级高于 Environment=，同名变量以 env 文件为准。
+# 因此 env 文件里不要再写 MASTER_KEY_FILE / DATA_DIR，否则会覆盖下面的 credential 路径
+# 与数据目录（例如让服务去读 root 专属的 /etc/expressassistant/master.key 并报 EACCES）。
+EnvironmentFile=/etc/expressassistant/env
+Environment=NODE_ENV=production
+Environment=DATA_DIR=/var/lib/expressassistant
+Environment=MASTER_KEY_FILE=/run/credentials/expressassistant.service/master.key
+Environment=DISPLAY=:99
+Environment=CHROMIUM_PATH=/usr/bin/chromium
+Environment=HOME=/var/lib/expressassistant
+
+# 主密钥以 credential 方式注入：文件本身 0600 root，服务只能读副本
+LoadCredential=master.key:/etc/expressassistant/master.key
+
+ExecStart=/usr/bin/node --max-old-space-size=512 /opt/expressassistant/packages/server/dist/index.js
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+KillSignal=SIGTERM
+
+# 资源上限：Node + 1 个 Chromium + 2 个 context
+MemoryMax=3G
+TasksMax=512
+
+# 加固
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadWritePaths=/var/lib/expressassistant /tmp
+
+# 注意：不要启用 PrivateTmp —— 会屏蔽 /tmp/.X11-unix，有头 Chromium 将连不上 Xvfb。
+# 也不要启用 ProtectClock / RestrictNamespaces，Chromium 需要用户命名空间做沙箱。
+
+[Install]
+WantedBy=multi-user.target

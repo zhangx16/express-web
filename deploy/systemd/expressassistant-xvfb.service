@@ -1,0 +1,23 @@
+[Unit]
+Description=ExpressAssistant virtual X display (for headful Chromium)
+After=network.target
+Before=expressassistant.service
+
+[Service]
+Type=simple
+User=expressassistant
+Group=expressassistant
+
+# Xvfb 需要写 /tmp/.X11-unix；不要开 PrivateTmp，否则主服务看不到 :99 的套接字
+ExecStart=/usr/bin/Xvfb :99 -screen 0 1280x800x24 -nolisten tcp
+Restart=always
+RestartSec=2
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp
+PrivateDevices=false
+
+[Install]
+WantedBy=multi-user.target

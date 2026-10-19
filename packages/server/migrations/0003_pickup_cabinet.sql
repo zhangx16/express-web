@@ -1,0 +1,1 @@
+ALTER TABLE items ADD COLUMN pickup_cabinet TEXT NOT NULL DEFAULT '';
